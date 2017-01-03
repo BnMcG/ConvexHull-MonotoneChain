@@ -26,8 +26,8 @@ class Gui:
 
         circle_button = Button(self.root, text='Generate circle', command=self.generate_circle).grid(row=1, column=0)
         polygon_button = Button(self.root, text='Generate polygon', command=self.generate_random_polygon).grid(row=1, column=1)
-        clear_button = Button(self.root, text='Clear canvas', command=self.clear_canvas).grid(row=1, column=2)
-        merge_button = Button(self.root, text='Merge hulls', command=self.merge_hulls).grid(row=1, column=3)
+        merge_button = Button(self.root, text='Merge hulls', command=self.merge_hulls).grid(row=1, column=2)
+        clear_button = Button(self.root, text='Clear canvas', command=self.clear_canvas).grid(row=1, column=3)
 
         self.root.mainloop()
 
@@ -52,17 +52,9 @@ class Gui:
     def generate_circle(self):
         points = []
 
-        center = Point2(self.WIDTH / 4, self.HEIGHT / 4)
-        radius = randint(50, self.HEIGHT - (self.HEIGHT/2 - 10))
+        center = Point2(randint(10, self.WIDTH-100), randint(10, self.HEIGHT-100))
+        radius = randint(50, self.HEIGHT / 4)
 
-        radians = 0
-
-        while radians < 2 * math.pi:
-            points.append(Point2(center.x + (radius * math.cos(radians)), center.y + (radius * math.sin(radians))))
-            radians += 0.1
-
-        center = Point2((self.WIDTH / 4) * 2, (self.HEIGHT / 4) * 2)
-        radius = randint(50, self.HEIGHT - (self.HEIGHT/2 - 10))
         radians = 0
 
         while radians < 2 * math.pi:
@@ -74,11 +66,11 @@ class Gui:
 
     def generate_random_polygon(self):
         points = []
-        num_vertices = randint(10, 100)
+        num_vertices = randint(10, 25)
 
         # Generate set of points
         for i in range(num_vertices):
-            newPoint = Point2(randint(10, self.WIDTH - 10), randint(10, self.HEIGHT - 10))
+            newPoint = Point2(randint(10, self.WIDTH - 50), randint(10, self.HEIGHT - 50))
             points.append(newPoint)
 
         self.hulls.append(ConvexHull(points))
