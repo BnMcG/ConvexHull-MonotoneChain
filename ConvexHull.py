@@ -53,9 +53,35 @@ class ConvexHull:
     def calculate_upper_hull(self):
         print("Beginning upper hull calculation...")
 
+        # Start at the third item in the list of points, as we just added the first
+        # two to the upper hull manually, and we don't want to iterate over them
+        # again
         for point in self.points:
-            while len(self.upper_hull) >= 2 and ConvexHull.calculate_turn(self.upper_hull[-2], self.upper_hull[-1], point) <= 0:
-                self.upper_hull.pop()
+
+            # If the upper hull contains more than two points and the last
+            # three points don't make a right turn, delete the middle of the last
+            # three points
+            while len(self.upper_hull) >= 2:
+
+                # Do the last three points make a right turn?
+                # Essentially we can ignore the middle point and just see if
+                # final point N is lower than point N-2
+
+                # X1
+                third_final_point = self.upper_hull[-2]
+
+                # X2
+                second_final_point = self.upper_hull[-1]
+
+                turn = ConvexHull.calculate_turn(third_final_point, second_final_point, point)
+
+                # If Z component of cross product is not negative, a right turn was NOT made
+                if turn <= 0:
+                    # Remove the point between the final point and the 3rd final point of the hull, as this point
+                    # is actually inside the convex hull itself, not part of outlying hull.
+                    self.upper_hull.pop()
+                else:
+                    break
 
             self.upper_hull.append(point)
 
@@ -63,13 +89,36 @@ class ConvexHull:
     def calculate_lower_hull(self):
         print("Beginning lower hull calculation...")
 
-        # This time we work from the
+        # Start three from the end of the list as we just added the final two points to the lower hull, and
+        # then iterate backwards through the list
         for point in reversed(self.points):
-            while len(self.lower_hull) >= 2 and ConvexHull.calculate_turn(self.lower_hull[-2], self.lower_hull[-1], point) <= 0:
-                self.lower_hull.pop()
+
+            # If the lower hull contains more than two points and the last
+            # three points don't make a right turn, delete the middle of the last
+            # three points
+            while len(self.lower_hull) >= 2:
+
+                # Do the last three points make a right turn?
+                # Essentially we can ignore the middle point and just see if
+                # final point N is lower than point N-2
+
+                # X1
+                third_final_point = self.lower_hull[-2]
+
+                # X2
+                second_final_point = self.lower_hull[-1]
+
+                turn = ConvexHull.calculate_turn(third_final_point, second_final_point, point)
+
+                # If Z component of cross product is not negative, a right turn was NOT made
+                if turn <= 0:
+                    # Remove the 2nd to last point as it's inside the convex hull, and not part of the hull
+                    # itself.
+                    self.lower_hull.pop()
+                else:
+                    break
 
             self.lower_hull.append(point)
-
 
     # Merge the upper and lower portions to form one cohesive convex hull
     def merge_hulls(self):
