@@ -2,9 +2,10 @@ from tkinter import *
 import math
 from Point2 import Point2
 from random import randint
-from ConvexHull import ConvexHull
+from convex_hull import ConvexHull
 from typing import List
-
+from convex_hull import sort_hulls
+from convex_hull import divide_and_conquer_hulls
 
 class Gui:
     NUM_POINTS = 15
@@ -22,14 +23,54 @@ class Gui:
 
         # Create a canvas with a yellow background which is the same size as the window
         self.canvas = Canvas(self.root, bg="yellow", height=self.HEIGHT, width=self.WIDTH)
-        self.canvas.grid(row=0, column=0, columnspan=4)
+        self.canvas.grid(row=0, column=0, columnspan=6)
+        self.canvas.bind("<Button-1>", self.callback_canvas_click)
+
+        self.pending_points = []  # type: List[Point2]
 
         circle_button = Button(self.root, text='Generate circle', command=self.generate_circle).grid(row=1, column=0)
         polygon_button = Button(self.root, text='Generate polygon', command=self.generate_random_polygon).grid(row=1, column=1)
         merge_button = Button(self.root, text='Merge hulls', command=self.merge_hulls).grid(row=1, column=2)
-        clear_button = Button(self.root, text='Clear canvas', command=self.clear_canvas).grid(row=1, column=3)
+        create_pending_button = Button(self.root, text='Create from pending points', command=self.create_from_pending).grid(row=1, column=3)
+        route_button = Button(self.root, text='Calculate route through hulls', command=self.callback_route_button_click).grid(row=1, column=4)
+        clear_button = Button(self.root, text='Clear canvas', command=self.callback_clear_button_click).grid(row=1, column=5)
 
         self.root.mainloop()
+
+    def create_from_pending(self):
+        self.hulls.append(divide_and_conquer_hulls(self.pending_points))
+        self.pending_points = []
+        self.redraw_hulls()
+
+    def callback_route_button_click(self):
+        self.path_through_hulls()
+
+    def callback_clear_button_click(self):
+        self.clear_canvas()
+        self.clear_hulls()
+
+    def callback_canvas_click(self, event):
+        print("Press at " + str(event.x) + ", " + str(event.y))
+        self.pending_points.append(Point2(event.x, event.y))
+        self.canvas.create_oval(event.x - 2.5, event.y - 2.5, event.x + 2.5, event.y + 2.5, outline='orange', fill='orange')
+
+    def path_through_hulls(self):
+        print("Calculating path through hulls...")
+        self.hulls = sort_hulls(self.hulls)
+
+        for i in range(len(self.hulls)-1):
+            current_hull = self.hulls[i]
+            next_hull = self.hulls[i+1]
+
+            # Add the last point of the current hull as the first point of the next hull
+            next_hull.points.insert(0, current_hull.points[len(current_hull.points)-1])
+
+            # Recalculate next hull
+            next_hull.calculate_hull()
+
+        # Redraw hulls
+        self.clear_canvas()
+        self.redraw_hulls()
 
     def merge_hulls(self):
 
@@ -39,15 +80,18 @@ class Gui:
             merged_points.extend(hull.points)
 
         self.clear_canvas()
+        self.clear_hulls()
 
-        merged_hull = ConvexHull(merged_points)
+        merged_hull = divide_and_conquer_hulls(merged_points)
         self.hulls.append(merged_hull)
 
         self.redraw_hulls()
 
     def clear_canvas(self):
-        self.hulls = []
         self.canvas.delete("all")
+
+    def clear_hulls(self):
+        self.hulls = []
 
     def generate_circle(self):
         points = []
@@ -61,7 +105,7 @@ class Gui:
             points.append(Point2(center.x + (radius * math.cos(radians)), center.y + (radius * math.sin(radians))))
             radians += 0.1
 
-        self.hulls.append(ConvexHull(points))
+        self.hulls.append(divide_and_conquer_hulls(points))
         self.redraw_hulls()
 
     def generate_random_polygon(self):
@@ -73,7 +117,7 @@ class Gui:
             newPoint = Point2(randint(10, self.WIDTH - 50), randint(10, self.HEIGHT - 50))
             points.append(newPoint)
 
-        self.hulls.append(ConvexHull(points))
+        self.hulls.append(divide_and_conquer_hulls(points))
         self.redraw_hulls()
 
     def redraw_hulls(self):
@@ -94,13 +138,13 @@ class Gui:
                 self.canvas.create_oval(p.x - 2.5, p.y - 2.5, (p.x + 2.5), (p.y + 2.5), outline='red', fill='red')
 
             # Connect points on the convex_hull with lines
-            for p in range(0, len(convex_hull.hull) - 1):
-                self.canvas.create_line(convex_hull.hull[p].x, convex_hull.hull[p].y, convex_hull.hull[p + 1].x,
-                                        convex_hull.hull[p + 1].y)
+            for p in range(0, len(convex_hull.upper_hull) - 1):
+                self.canvas.create_line(convex_hull.upper_hull[p].x, convex_hull.upper_hull[p].y, convex_hull.upper_hull[p + 1].x,
+                                        convex_hull.upper_hull[p + 1].y)
 
             # Connect the upper and lower hulls
-                self.canvas.create_line(convex_hull.upper_hull[0].x, convex_hull.upper_hull[0].y, convex_hull.lower_hull[len(convex_hull.lower_hull) - 1].x,
-                                        convex_hull.lower_hull[len(convex_hull.lower_hull) - 1].y)
+            #    self.canvas.create_line(convex_hull.upper_hull[0].x, convex_hull.upper_hull[0].y, convex_hull.lower_hull[len(convex_hull.lower_hull) - 1].x,
+            #                            convex_hull.lower_hull[len(convex_hull.lower_hull) - 1].y)
 
 
 Gui()

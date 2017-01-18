@@ -1,8 +1,9 @@
 from typing import List
 from Point2 import Point2
+from copy import deepcopy
 
 
-class ConvexHull:
+class ConvexHull(object):
 
     def __init__(self, points: List[Point2]):
         self.points = points
@@ -15,7 +16,17 @@ class ConvexHull:
 
         self.calculate_upper_hull()
         self.calculate_lower_hull()
-        self.merge_hulls()
+        self.merge_upper_lower()
+
+    def calculate_hull(self):
+        self.hull = []
+        self.upper_hull = []
+        self.lower_hull = []
+        
+        self.points = self.sort_points(self.points)
+        self.calculate_upper_hull()
+        self.calculate_lower_hull()
+        self.merge_upper_lower()
 
     # If this method returns 0 it means no turn was made and points are collinear
     # if this method returns a +ve number, a left turn was made
@@ -121,13 +132,64 @@ class ConvexHull:
             self.lower_hull.append(point)
 
     # Merge the upper and lower portions to form one cohesive convex hull
-    def merge_hulls(self):
+    def merge_upper_lower(self):
         # Remove the first and last points from the lower hull, as there will be overlap with the
         # upper hull
         self.lower_hull.remove(self.lower_hull[len(self.lower_hull) - 1])
         self.lower_hull.remove(self.lower_hull[0])
 
-        self.hull = self.upper_hull
+        # Simply setting hull = to upper_hull just makes a reference to upper_hull instead of a copy
+        self.hull = deepcopy(self.upper_hull)
         self.hull.extend(self.lower_hull)
         #self.hull = self.sort_points(self.hull)
 
+
+def sort_hulls(hulls: List[ConvexHull]) -> List[ConvexHull]:
+    print("Sorting...")
+
+    for r in range(len(hulls) - 1):
+
+        swap_made = False
+
+        for r in range(len(hulls) - 1):
+
+            first = hulls[r]
+            second = hulls[r + 1]
+
+            # Swap over if first hull extends further right than the 2nd point
+            if first.points[len(first.points) - 1].x > second.points[len(second.points) - 1].x:
+                temp = first
+                hulls[r] = hulls[r + 1]
+                hulls[r + 1] = temp
+                swap_made = True
+
+        if not swap_made:
+            break
+
+    return hulls
+
+
+def merge_hulls(hulls: List[ConvexHull]) -> ConvexHull:
+    merged_points = []
+
+    for hull in hulls:
+        merged_points.extend(hull.points)
+
+    return ConvexHull(merged_points)
+
+
+def divide_and_conquer_hulls(points: List[Point2]) -> ConvexHull:
+
+    if len(points) < 4:
+        return ConvexHull(points)
+
+    list_one = []
+    list_two = []
+
+    for i in range(0, int(len(points) / 2)):
+        list_one.append(points[i])
+
+    for i in range(int(len(points) / 2), len(points)):
+        list_two.append(points[i])
+
+    return merge_hulls([divide_and_conquer_hulls(list_one), divide_and_conquer_hulls(list_two)])
