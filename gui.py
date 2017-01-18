@@ -58,19 +58,14 @@ class Gui:
         print("Calculating path through hulls...")
         self.hulls = sort_hulls(self.hulls)
 
-        for i in range(len(self.hulls)-1):
-            current_hull = self.hulls[i]
-            next_hull = self.hulls[i+1]
+        for i in range(0, len(self.hulls)-1):
 
-            # Add the last point of the current hull as the first point of the next hull
-            next_hull.points.insert(0, current_hull.points[len(current_hull.points)-1])
+            hull_one = self.hulls[i]
+            hull_two = self.hulls[i+1]
 
-            # Recalculate next hull
-            next_hull.calculate_hull()
-
-        # Redraw hulls
-        self.clear_canvas()
-        self.redraw_hulls()
+            self.canvas.create_line(hull_one.upper_hull[len(hull_one.upper_hull)-1].x, hull_one.upper_hull[len(hull_one.upper_hull)-1].y,
+                                    hull_two.upper_hull[0].x,
+                                    hull_two.upper_hull[0].y)
 
     def merge_hulls(self):
 

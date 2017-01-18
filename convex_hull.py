@@ -62,8 +62,6 @@ class ConvexHull(object):
 
     # Calculate the upper portion of the convex hull using the set of points given
     def calculate_upper_hull(self):
-        print("Beginning upper hull calculation...")
-
         # Start at the third item in the list of points, as we just added the first
         # two to the upper hull manually, and we don't want to iterate over them
         # again
@@ -98,8 +96,6 @@ class ConvexHull(object):
 
     # Calculate the lower portion of the convex hull using the set of points given
     def calculate_lower_hull(self):
-        print("Beginning lower hull calculation...")
-
         # Start three from the end of the list as we just added the final two points to the lower hull, and
         # then iterate backwards through the list
         for point in reversed(self.points):
@@ -147,7 +143,7 @@ class ConvexHull(object):
 def sort_hulls(hulls: List[ConvexHull]) -> List[ConvexHull]:
     print("Sorting...")
 
-    for r in range(len(hulls) - 1):
+    for bs in range(len(hulls) - 1):
 
         swap_made = False
 
@@ -157,7 +153,7 @@ def sort_hulls(hulls: List[ConvexHull]) -> List[ConvexHull]:
             second = hulls[r + 1]
 
             # Swap over if first hull extends further right than the 2nd point
-            if first.points[len(first.points) - 1].x > second.points[len(second.points) - 1].x:
+            if first.upper_hull[len(first.upper_hull) - 1].x > second.upper_hull[len(second.upper_hull) - 1].x:
                 temp = first
                 hulls[r] = hulls[r + 1]
                 hulls[r + 1] = temp
